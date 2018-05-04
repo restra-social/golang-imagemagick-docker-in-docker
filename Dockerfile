@@ -1,10 +1,12 @@
-FROM golang:1.8
+FROM golang:1.9.3
 
 RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     libgraphicsmagick-dev \
     imagemagick \
     graphicsmagick
+
+RUN pkg-config --cflags --libs MagickWand
 
 #install glide
 RUN curl https://glide.sh/get | sh
