@@ -26,11 +26,6 @@ RUN cd && \
 	make -j$(nproc) && make install && \
 	ldconfig /usr/local/lib
 
-WORKDIR /go/projects/resizer
-COPY . .
-
-RUN go install
-
 #install glide
 RUN curl https://glide.sh/get | sh
 
@@ -46,5 +41,3 @@ RUN curl https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
     mv docker/docker /usr/local/bin/docker && \
     chmod +x /usr/local/bin/docker && \
 rm -r docker
-
-CMD /go/bin/resizer
