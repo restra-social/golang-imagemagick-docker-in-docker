@@ -1,12 +1,35 @@
-FROM golang:1.9.3
+FROM golang:1.11
 
-RUN apt-get update && apt-get install -y \
-    libmagickwand-dev \
-    libgraphicsmagick-dev \
-    imagemagick \
-    graphicsmagick
+# Ignore APT warnings about not having a TTY
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN pkg-config --cflags --libs MagickWand
+# install build essentials
+RUN apt-get update && \
+    apt-get install -y wget build-essential pkg-config --no-install-recommends
+
+# Install ImageMagick deps
+RUN apt-get -q -y install libjpeg-dev libpng-dev libtiff-dev \
+    libgif-dev libx11-dev --no-install-recommends
+
+ENV IMAGEMAGICK_VERSION=6.9.10-11
+
+RUN cd && \
+	wget https://github.com/ImageMagick/ImageMagick6/archive/${IMAGEMAGICK_VERSION}.tar.gz && \
+	tar xvzf ${IMAGEMAGICK_VERSION}.tar.gz && \
+	cd ImageMagick* && \
+	./configure \
+	    --without-magick-plus-plus \
+	    --without-perl \
+	    --disable-openmp \
+	    --with-gvc=no \
+	    --disable-docs && \
+	make -j$(nproc) && make install && \
+	ldconfig /usr/local/lib
+
+WORKDIR /go/projects/resizer
+COPY . .
+
+RUN go install
 
 #install glide
 RUN curl https://glide.sh/get | sh
@@ -23,3 +46,5 @@ RUN curl https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
     mv docker/docker /usr/local/bin/docker && \
     chmod +x /usr/local/bin/docker && \
 rm -r docker
+
+CMD /go/bin/resizer
